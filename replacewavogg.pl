@@ -32,6 +32,8 @@ $parsed->walk_parts(sub {
 	my $pid = open2($out, $in, 'sox -t wav - -t ogg -' );
 	# feed body in the pipe
 	print $in $part->body;
+	close $in;
+
 	# collect the result
 	my @ogg_data = <$out>;
 	# build string
