@@ -49,6 +49,7 @@ __END__
 
 =head1 replacewavogg.pl
 
+Licence GPL3
 
 
 
