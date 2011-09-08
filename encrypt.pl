@@ -2,12 +2,14 @@
 use strict;
 use Email::MIME;
 use IPC::Open2;
-use Data::Dumper;
+#use Data::Dumper;
 
-my $receiver = $ARGV[0];
+my $receiver = shift;
+my $homedir  = shift;
 
+#open ERR, ">>/tmp/enc.err";
 # slurp message
-my @msg = <STDIN>;
+my @msg = <>;
 # build message string
 my $message = join( "", @msg );
 # parse message to get parts
@@ -23,7 +25,7 @@ $parsed->walk_parts(sub {
         # encrypt part inline 
         my($out, $in); # open filedescriptors for pipe
         # converter as pipe
-        my $pid = open2($out, $in, "/usr/bin/gpg --batch --no-verbose -a -e -r $receiver" );
+        my $pid = open2($out, $in, "/usr/bin/gpg --homedir $homedir -a -e -r $receiver --no-verbose 2>/dev/null" );
         # feed body in the pipe
         print $in $part->body;
 	close $in;
@@ -38,11 +40,11 @@ $parsed->walk_parts(sub {
     }
 });
 
+#print ERR $message;
+#print ERR "------\n";
+#print ERR $parsed->as_string;
 print $parsed->as_string;
-
-
-
-
+print "\n";
 
 __END__
 
