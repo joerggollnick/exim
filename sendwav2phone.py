@@ -134,6 +134,9 @@ try:
     # no sound device 
     lib.set_null_snd_dev()
     lib.set_codec_priority('G722/16000/1', 0 )
+    lib.set_codec_priority('iLBC/8000/1', 0 )
+    lib.set_codec_priority('PCMA/8000/1', 190 )
+    lib.set_codec_priority('PCMU/8000/1', 180 )
 
     # no account active
     current_account = None
