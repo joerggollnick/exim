@@ -8,11 +8,12 @@ use File::Temp;
 # autoflush
 $| = 1;
 
-my $receiver  = shift;
-my $own_msg_id = shift;
-my $sipDomain = shift;
-my $sipUser   = shift;
-my $sipPasswd = shift;
+my $receiver    = shift;
+my $own_msg_id  = shift;
+my $sipDomain   = shift;
+my $sipUser     = shift;
+my $sipPasswd   = shift;
+my $maxcalltime = shift || 50;
 
 my ( $number, $vqueue ) = split( /[+]/, $receiver);
 

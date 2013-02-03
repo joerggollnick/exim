@@ -87,8 +87,8 @@ class call_cb(pj.CallCallback):
 
             
 # main
-if len(sys.argv) < 3:
-    print 'usage: sendwav2phone <destination> <myfile> <dtmf> [mydomain mylogin mypass]'
+if len(sys.argv) < 4:
+    print 'usage: sendwav2phone <destination> <myfile> <dtmf> <maxcalltime> [mydomain mylogin mypass]'
     print '   destination is an URI to call, e.g. [sip:][extension@]ip'
     print '     specify login credentials if you want to register'
     sys.exit(1)
@@ -108,13 +108,24 @@ wavfile = sys.argv[2]
 global dtmf
 dtmf = sys.argv[3]
 
+# set maxcalltime but minimum 50 seconds and maximum 350 seconds
+global maxcalltime
+maxcalltime = sys.argv[4]
+
+if maxcalltime < 50:
+    maxcalltime = 50
+
+if maxcalltime > 350:
+    maxcalltime = 350
+
+
 # optional credentials
-if len(sys.argv) > 4:
+if len(sys.argv) > 5:
     auth = True
-    auth_domain = sys.argv[4]
-    auth_login = sys.argv[5]
-    if len(sys.argv) > 6:
-        auth_pass = sys.argv[6]
+    auth_domain = sys.argv[5]
+    auth_login = sys.argv[6]
+    if len(sys.argv) > 7:
+        auth_pass = sys.argv[7]
     else:
         auth_pass = ""
 else:
@@ -179,7 +190,7 @@ try:
 
     # wait until call is disconnected
     while current_call != None:
-      if current_call.info().call_time > 50:
+      if current_call.info().call_time > maxcalltime:
 	current_call.hangup()
 
       time.sleep( 1 )
