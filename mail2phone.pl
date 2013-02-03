@@ -103,7 +103,7 @@ $parsed->walk_parts(sub {
          
         close $tmp;
     
-        $pid = open2($out, $in, "/etc/scripts/sendwav2phone.py $number\@$sipDomain $tmpname $dtmf $sipDomain $sipUser $sipPasswd  2>/dev/null" ); 
+        $pid = open2($out, $in, "/etc/scripts/sendwav2phone.py $number\@$sipDomain $tmpname $dtmf $maxcalltime $sipDomain $sipUser $sipPasswd  2>/dev/null" ); 
 
 	close $in;
 	
