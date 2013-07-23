@@ -110,7 +110,7 @@ dtmf = sys.argv[3]
 
 # set maxcalltime but minimum 50 seconds and maximum 350 seconds
 global maxcalltime
-maxcalltime = sys.argv[4]
+maxcalltime = int(sys.argv[4])
 
 if maxcalltime < 50:
     maxcalltime = 50
