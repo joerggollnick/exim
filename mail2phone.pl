@@ -20,7 +20,7 @@ my ( $number, $vqueue ) = split( /[+]/, $receiver);
 # delete all message for vqueue
 my %id;
 
-open(QUEUE,"/usr/bin/exim -bpu |") or die("Error openning pipe: $!\n");
+open(QUEUE,"/usr/sbin/exim -bpu |") or die("Error openning pipe: $!\n");
 while(<QUEUE>) {
     chomp();
     my $line = $_;
@@ -49,14 +49,14 @@ if ( defined $vqueue )
         @queueelems = grep( /$vqueue/i, @{$id{$msg}{rcpt}} );
         $id{$msg}{match} = @queueelems;
         if( $id{$msg}{match} > 0 ) {
-	    open(REMOVE,"/usr/bin/exim -Mrm $msg |") or die("Error openning pipe: $!\n");
+	    open(REMOVE,"/usr/sbin/exim -Mrm $msg |") or die("Error openning pipe: $!\n");
             $removeout .= <REMOVE>;
             close(REMOVE) or die("Error closing pipe: $!\n");
         }
     }
 }
 
-open(QUEUE,"/usr/bin/exim -bpu |") or die("Error openning pipe: $!\n");
+open(QUEUE,"/usr/sbin/exim -bpu |") or die("Error openning pipe: $!\n");
 my $eximout = <QUEUE>;
 close(QUEUE) or die("Error closing pipe: $!\n");
 
