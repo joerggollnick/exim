@@ -4,6 +4,12 @@ use strict;
 use Email::MIME;
 use IPC::Open2;
 use File::Temp;
+use Data::Dumper;
+use Mail::Sender;
+use Mail::Sender::CType::Ext;
+
+# configure Mail::Sender 
+$Mail::Sender::NO_X_MAILER = 1;
 
 # autoflush
 $| = 1;
@@ -38,6 +44,7 @@ close(QUEUE) or die("Error closing pipe: $!\n");
 
 my $removeout = "";
 # read complete multi line message or output
+my $old = $/;
 $/=undef;
 my $message = <>;
 
@@ -67,13 +74,14 @@ my $parsed = Email::MIME->new($message);
 my $subject = $parsed->header( 'Subject' );
 my $date    = $parsed->header( 'Date' );
 my $language = 'mb-de6';
-$language = $1 if $subject =~ /\[(\w+)\]/;
+$language = $1 if $subject =~ /\[([-\w]+)\]/;
 my $dtmf = 'N';
 $dtmf = $1 if $subject =~ /\!(\d)\!/;
 # walk through the parts
 $parsed->walk_parts(sub {
     # this part
     my ($part) = @_; 
+
     # multipart
     return if $part->parts > 1;
     # text file Attachment
@@ -87,7 +95,7 @@ $parsed->walk_parts(sub {
         # espeak converter as pipe
         my $pid = open2($out, $in, "/usr/bin/espeak -v $language -s 120 -p 55 -a 200 -w $tmpname --stdin 2>\&1" );
         # feed subject and body in the pipe
-        $subject =~ s/\[(\w+)\]//; 
+        $subject =~ s/\[([-\w]+)\]//; 
         $subject =~ s/\!(\d)\!//; 
         print $in $subject;
 	print $in $part->body;
@@ -102,7 +110,7 @@ $parsed->walk_parts(sub {
         waitpid( $pid, 0 );
          
         close $tmp;
-    
+
         $pid = open2($out, $in, "/etc/scripts/sendwav2phone.py $number\@$sipDomain $tmpname $dtmf $maxcalltime $sipDomain $sipUser $sipPasswd  2>/dev/null" ); 
 
 	close $in;
@@ -117,18 +125,20 @@ $parsed->walk_parts(sub {
        
 	if ( $pjreport =~ /Accepted/ ) { 
 		$return_code = 0; 
+                $subject =~ s/\"/ /g;
 
-		$pid = open2($out, $in, "mailx -s \"Report $subject $date\" $ENV{SENDER}" );
-                
-                $vqueue = "No queue" if ( !defined $vqueue );
-	
-		print $in "$espeakreport\n$pjreport\n$eximout\n$removeout\n$own_msg_id $receiver $number\n";
-		close $in;
-
-		close $out;
-	
-        	# wait for the forked child (open2)
-        	waitpid( $pid, 0 );
+		$vqueue = "No queue" if ( !defined $vqueue );
+		$/ = $old;
+		# send out report
+		my $sender  = Mail::Sender->new();
+		my $mailout = $sender->MailMsg(
+		    {to   => "debug\@$ENV{DOMAIN}",
+		     from => "exim\@$ENV{DOMAIN}",
+		     smtp => 'localhost',
+		     subject => "Report $subject",
+		     msg => "$espeakreport\n$pjreport\n$eximout\n$removeout\n$vqueue\n$own_msg_id $receiver $number\n",
+		    });
+		$mailout->Close();
     	}
      }
   });
