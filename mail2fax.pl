@@ -4,6 +4,11 @@ use strict;
 use Email::MIME;
 use IPC::Open2;
 use File::Temp;
+use Mail::Sender;
+use Mail::Sender::CType::Ext;
+
+# configure Mail::Sender 
+$Mail::Sender::NO_X_MAILER = 1;
 
 # autoflush
 $| = 1;
@@ -18,6 +23,8 @@ $fromfax =~ s/^[+]\d+_/0/;
 $fromfax =~ s/_//g;
 
 # read complete message 
+my $old = $/;
+
 $/=undef;
 my $message = <>;
 
@@ -77,14 +84,22 @@ $parsed->walk_parts(sub {
         # wait for the forked child (open2)
         waitpid( $pid, 0 );
 
-        $pid = open2($out, $in, "/usr/bin/mailx -a $tmpnamepdf -a $tmpnametiff -s \"fax report\" $ENV{SENDER}" ); 
-        print $in "$capireport\n";
-        close $in;
+	# restore original value
+	$/ = $old;
 
-        close $out;
-
-        # wait for the forked child (open2)
-        waitpid( $pid, 0 );
+        my @files = ( $tmpnamepdf, $tmpnametiff );
+        
+        # send mail with result
+	my $sender  = Mail::Sender->new();
+        my $mailout = $sender->MailFile(
+	    {to =>$ENV{SENDER},
+	     from => "exim\@$ENV{DOMAIN}",
+	     smtp=> 'localhost',
+	     subject => 'Fax report',
+	     msg => $capireport,
+	     file => \@files,
+	    });
+	$mailout->Close();
 
         close $tmptiff;
 	close $tmppdf;
