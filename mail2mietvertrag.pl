@@ -30,6 +30,9 @@ my $message = <>;
 my $parsed = Email::MIME->new($message);
 my $string = $parsed->body;
 $string =~ s/\r\n/\n/g;
+$string =~ s/\%/ Prozent/g;
+$string =~ s/_/\\_/g;
+#$string =~ s/€/\\EUR\{\}/g;
 
 # empty structure
 my $meta    = {};
@@ -39,6 +42,7 @@ my @lines   = undef;
 my $section = undef;
 my $key     = undef;
 my $value   = undef;
+my $name_for_file = undef;
 
 # mark keys
 $string =~ s/\n(.*?)\n\t\t/\n=== $1 ===\n/gu;
@@ -77,8 +81,11 @@ foreach my $k (keys $meta) {
     $meta->{$k}  =~ s/\n//g;
 }
 
+$name_for_file = $meta->{'Name'};
+$name_for_file =~ s/[ ]/_/g;
+
 $meta->{'filename'} = "$meta->{'Haus'}\-$meta->{'Etage'}$meta->{'Lage'}\-" .
-    "$meta->{'Name'}";
+    "$name_for_file";
 
 $meta->{'masterfilename'} = "mietvertrag\-$meta->{'filename'}";
 
@@ -164,7 +171,7 @@ foreach my $k (keys $vertrag) {
 
 # set Date in right format
 my $start = ParseDate( $vertrag->{'Start'} );
-$vertrag->{'Start'} = UnixDate( $start, "%d. %B %Y" );
+$vertrag->{'Start'} = UnixDate( $start, "%d.%m.%Y" );
 
 # define additional text
 my $zusatz = $werte->{'Zusatz'}->{'Zusatzvereinbarungen_(eine_Leerzeile_nach_jedem_Unterpunkt)'};
