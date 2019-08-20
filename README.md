@@ -6,3 +6,6 @@
 - Send mail as phone call
 - converted from bitbucket
 
+This repository is mainly to automate git in same way as hg can do this.
+
+
